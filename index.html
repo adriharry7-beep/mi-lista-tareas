@@ -10,13 +10,14 @@
 <body>
 
     <div class="container">
-        <h1>Mis Tareas</h1>
+        <h1>Mis Tareas <span id="taskCounter" aria-live="polite">0 de 0</span></h1>
         <p>Organiza tu día paso a paso.</p>
         
         <div class="input-group">
             <input type="text" id="taskInput" placeholder="¿Qué tienes que hacer hoy?">
             <button id="addBtn">Agregar</button>
             <button id="themeToggle" aria-label="Modo noche">🌙</button>
+            <button id="exportBtn" aria-label="Exportar lista">📤</button>
         </div>
 
         <ul id="taskList">

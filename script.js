@@ -63,6 +63,23 @@ function saveTasks() {
     localStorage.setItem('myTasks', JSON.stringify(tasks));
 }
 
+// --- NUEVA FUNCIÓN: Actualizar contador ---
+function updateCounter() {
+    const total = taskList.querySelectorAll('li').length;
+    const completed = taskList.querySelectorAll('li.completed').length;
+    const counter = document.getElementById('taskCounter');
+    counter.innerText = `${completed} de ${total}`;
+    
+    // Estilo condicional
+    if (total === 0) {
+        counter.style.color = '#777';
+    } else if (completed === total) {
+        counter.style.color = '#2ecc71';
+    } else {
+        counter.style.color = '#333';
+    }
+}
+
 // Función para crear el elemento visual en la pantalla
 function renderTask(taskText) {
     const li = document.createElement('li');
@@ -74,12 +91,16 @@ function renderTask(taskText) {
     // Acción de marcar como completada
     li.querySelector('.task-text').addEventListener('click', function() {
         li.classList.toggle('completed');
+        updateCounter(); // Actualizar contador
     });
 
     // Acción de eliminar
     li.querySelector('.delete-btn').addEventListener('click', function() {
-        li.remove();
-        saveTasks(); // Guardamos el cambio inmediatamente
+        if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+            li.remove();
+            saveTasks(); // Guardamos el cambio inmediatamente
+            updateCounter(); // Actualizar contador
+        }
     });
 
     taskList.appendChild(li);
@@ -97,6 +118,7 @@ function addTask() {
     renderTask(taskText);
     saveTasks(); // Guardamos la nueva tarea en el "cuaderno"
     taskInput.value = "";
+    updateCounter(); // Actualizar contador
 }
 
 // Eventos de botones y teclado
@@ -110,8 +132,88 @@ taskInput.addEventListener('keypress', function(e) {
 // Ejecutamos la carga de tareas al iniciar
 loadTasks();
 
+updateCounter();
+
 // Cargar tema guardado
 loadTheme();
 
 // Evento para alternar modo noche
 themeToggle.addEventListener('click', toggleTheme);
+
+// --- NUEVA FUNCIÓN: Exportar/Guardar lista ---
+function exportTasks() {
+    const tasks = [];
+    // Recorremos todas las tareas en la pantalla
+    taskList.querySelectorAll('li').forEach(li => {
+        // Obtenemos el texto y el estado completado
+        const textElement = li.querySelector('.task-text');
+        if (textElement) {
+            tasks.push({
+                text: textElement.innerText,
+                completed: li.classList.contains('completed')
+            });
+        }
+    });
+
+    // Formato de archivo con fecha
+    const date = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mi-lista-tareas-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// --- NUEVA FUNCIÓN: Copiar al portapapeles ---
+function copyToClipboard() {
+    const tasks = [];
+    taskList.querySelectorAll('li').forEach(li => {
+        const textElement = li.querySelector('.task-text');
+        if (textElement) {
+            tasks.push(textElement.innerText);
+        }
+    });
+
+    const textToCopy = JSON.stringify(tasks);
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        // Feedback visual temporal
+        const originalText = exportBtn.innerText;
+        exportBtn.innerText = '✓';
+        setTimeout(() => {
+            exportBtn.innerText = '📤';
+        }, 2000);
+    });
+}
+
+// --- NUEVA FUNCIÓN: Limpiar todas las tareas ---
+function clearAllTasks() {
+    if (confirm('¿Eliminar todas las tareas?')) {
+        taskList.innerHTML = '';
+        localStorage.removeItem('myTasks');
+        updateCounter(); // Actualizar contador si existe
+    }
+}
+
+// Agregar event listeners a los nuevos botones
+exportBtn.addEventListener('click', function(e) {
+    // Alternar entre exportar y copiar con un solo botón
+    // Primero intentamos exportar, si falla o podemos decidir...
+    // Por ahora: click largo = copiar, click normal = exportar
+    // Simplificamos: un solo click exporta, doble click copia
+    if (e.detail === 2) {
+        // Doble click = copiar
+        e.preventDefault();
+        copyToClipboard();
+    } else {
+        // Click simple = exportar
+        exportTasks();
+    }
+});
+
+// Cambiar cursor para indicar doble click posible
+exportBtn.setAttribute('title', 'Click: exportar | Doble click: copiar al portapapeles');
+
+// También añadiremos un botón de "Limpiar todo" al footer después del h1
+// (Esto se hará en el próximo paso cuando implementemos la función #4)
