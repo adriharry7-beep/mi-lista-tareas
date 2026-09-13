@@ -3,6 +3,7 @@ const taskInput = document.getElementById('taskInput');
 const addBtn = document.getElementById('addBtn');
 const taskList = document.getElementById('taskList');
 const themeToggle = document.getElementById('themeToggle');
+const exportBtn = document.getElementById('exportBtn');
 
 // --- NUEVA FUNCIÓN: Cargar tema guardado ---
 function loadTheme() {
@@ -38,11 +39,23 @@ function toggleTheme() {
 function loadTasks() {
     const savedTasks = localStorage.getItem('myTasks');
     if (savedTasks) {
-        // Convertimos el texto guardado de nuevo en una lista real (JSON.parse)
-        const tasks = JSON.parse(savedTasks);
-        tasks.forEach(taskText => {
-            renderTask(taskText);
-        });
+        try {
+            // Convertimos el texto guardado de nuevo en una lista real (JSON.parse)
+            const tasks = JSON.parse(savedTasks);
+            tasks.forEach(taskObj => {
+                renderTask(taskObj.text);
+                // Si la tarea estaba marcada como completada, la aplicamos
+                if (taskObj.completed) {
+                    const li = taskList.lastElementChild;
+                    if (li) {
+                        li.classList.add('completed');
+                    }
+                }
+            });
+        } catch (e) {
+            console.error("Error parsing saved tasks", e);
+            localStorage.removeItem('myTasks');
+        }
     }
 }
 
@@ -53,10 +66,13 @@ function saveTasks() {
     // Recorremos todos los elementos de la lista en la pantalla
     const items = taskList.querySelectorAll('li');
     items.forEach(item => {
-        // Guardamos solo el texto de la tarea si existe
+        // Guardamos el texto y el estado completado de cada tarea
         const textElement = item.querySelector('.task-text');
         if (textElement) {
-            tasks.push(textElement.innerText);
+            tasks.push({
+                text: textElement.innerText,
+                completed: item.classList.contains('completed')
+            });
         }
     });
     // Guardamos la lista como un texto (JSON.stringify)
@@ -83,12 +99,54 @@ function updateCounter() {
 // Función para crear el elemento visual en la pantalla
 function renderTask(taskText) {
     const li = document.createElement('li');
-    li.innerHTML = `
-        <span class="task-text">${taskText}</span>
-        <button class="delete-btn">Eliminar</button>
-    `;
+    const span = document.createElement('span');
+    span.className = 'task-text';
+    span.textContent = taskText;
 
-    // Acción de marcar como completada
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.innerHTML = 'Eliminar';
+
+    // Manejar doble clic para editar
+    let isEditing = false;
+    let savedText = taskText;
+
+    span.addEventListener('dblclick', function() {
+        if (isEditing) return;
+        isEditing = true;
+        savedText = span.textContent;
+
+        // Reemplazar span por input
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = savedText;
+        input.className = 'task-input';
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                // Cancelar: restaurar texto original
+                span.textContent = savedText;
+                li.removeChild(input);
+                isEditing = false;
+            } else if (e.key === 'Enter') {
+                // Guardar: actualizar texto
+                const newText = input.value.trim();
+                if (newText !== "") {
+                    span.textContent = newText;
+                    saveTasks();
+                    updateCounter();
+                }
+                li.removeChild(input);
+                isEditing = false;
+            }
+        });
+        input.focus();
+        li.replaceChild(input, span);
+    });
+
+    li.appendChild(span);
+    li.appendChild(deleteBtn);
+
+    // Acción de marcar como completada (clic simple)
     li.querySelector('.task-text').addEventListener('click', function() {
         li.classList.toggle('completed');
         updateCounter(); // Actualizar contador
@@ -110,7 +168,7 @@ function renderTask(taskText) {
 function addTask() {
     const taskText = taskInput.value;
 
-    if (taskText === "") {
+    if (taskText.trim() === "") {
         alert("Por favor, escribe una tarea antes de añadirla.");
         return;
     }
@@ -123,7 +181,7 @@ function addTask() {
 
 // Eventos de botones y teclado
 addBtn.addEventListener('click', addTask);
-taskInput.addEventListener('keypress', function(e) {
+taskInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         addTask();
     }
@@ -139,6 +197,55 @@ loadTheme();
 
 // Evento para alternar modo noche
 themeToggle.addEventListener('click', toggleTheme);
+
+// Aplicar filtro guardado
+const savedFilter = localStorage.getItem('taskFilter');
+if (savedFilter) {
+    applyFilter(savedFilter);
+}
+
+// --- NUEVA FUNCIÓN: Aplicar filtro ---
+function applyFilter(filter) {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    
+    // Actualizar botones visuales
+    filterBtns.forEach(btn => {
+        if (btn.getAttribute('data-filter') === filter) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Aplicar filtrado a las tareas
+    const tasks = taskList.querySelectorAll('li');
+    tasks.forEach(li => {
+        const isCompleted = li.classList.contains('completed');
+        
+        switch(filter) {
+            case 'all':
+                li.style.display = '';
+                break;
+            case 'active':
+                li.style.display = isCompleted ? 'none' : '';
+                break;
+            case 'completed':
+                li.style.display = isCompleted ? '' : 'none';
+                break;
+        }
+    });
+}
+
+// Agregar event listeners a los botones de filtro
+const filterBtns = document.querySelectorAll('.filter-btn');
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        const filter = btn.getAttribute('data-filter');
+        applyFilter(filter);
+        // Guardar preferencia en localStorage
+        localStorage.setItem('taskFilter', filter);
+    });
+});
 
 // --- NUEVA FUNCIÓN: Exportar/Guardar lista ---
 function exportTasks() {
