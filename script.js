@@ -53,8 +53,11 @@ function saveTasks() {
     // Recorremos todos los elementos de la lista en la pantalla
     const items = taskList.querySelectorAll('li');
     items.forEach(item => {
-        // Guardamos solo el texto de la tarea
-        tasks.push(item.querySelector('.task-text').innerText);
+        // Guardamos solo el texto de la tarea si existe
+        const textElement = item.querySelector('.task-text');
+        if (textElement) {
+            tasks.push(textElement.innerText);
+        }
     });
     // Guardamos la lista como un texto (JSON.stringify)
     localStorage.setItem('myTasks', JSON.stringify(tasks));
