@@ -1,7 +1,31 @@
-/* Configuración general */
+:root {
+    --bg-color: #f5f7fa;
+    --text-color: #333;
+    --input-border: #e0e0e0;
+    --btn-bg: #6c63ff;
+    --btn-hover: #5a52d9;
+    --li-bg: #f9f9f9;
+    --li-border: #6c63ff;
+    --delete-bg: #ff4757;
+    --delete-hover: #ff3747;
+}
+
+[data-theme="dark"] {
+    --bg-color: #1a1a2e;
+    --text-color: #f0f0f0;
+    --input-border: #3a3a4a;
+    --btn-bg: #4a4a6a;
+    --btn-hover: #3d3d5a;
+    --li-bg: #16213e;
+    --li-border: #0f3460;
+    --delete-bg: #e94560;
+    --delete-hover: #d94358;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe1 100%);
+    background: var(--bg-color);
+    color: var(--text-color);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -10,7 +34,7 @@ body {
 }
 
 .container {
-    background: white;
+    background: var(--container-bg, white);
     padding: 2rem;
     border-radius: 15px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -24,7 +48,7 @@ h1 {
 }
 
 p {
-    color: #777;
+    color: var(--text-color);
     margin-bottom: 2rem;
 }
 
@@ -38,19 +62,19 @@ p {
 input {
     flex: 1;
     padding: 12px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--input-border);
     border-radius: 8px;
     outline: none;
     transition: border-color 0.3s;
 }
 
 input:focus {
-    border-color: #6c63ff;
+    border-color: var(--btn-bg);
 }
 
 button#addBtn {
     padding: 12px 20px;
-    background-color: #6c63ff;
+    background-color: var(--btn-bg);
     color: white;
     border: none;
     border-radius: 8px;
@@ -60,7 +84,7 @@ button#addBtn {
 }
 
 button#addBtn:hover {
-    background-color: #5a52d9;
+    background-color: var(--btn-hover);
 }
 
 /* Lista de tareas */
@@ -70,14 +94,14 @@ ul {
 }
 
 li {
-    background: #f9f9f9;
+    background: var(--li-bg);
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-left: 4px solid #6c63ff;
+    border-left: 4px solid var(--li-border);
     transition: transform 0.2s;
 }
 
@@ -88,10 +112,33 @@ li.completed {
 }
 
 .delete-btn {
-    background: #ff4757;
+    background: var(--delete-bg);
     color: white;
     border: none;
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: var(--delete-hover);
+}
+
+#themeToggle {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s;
+}
+
+#themeToggle:hover {
+    color: var(--btn-bg);
+}
+
+#themeToggle:focus-visible {
+    outline: 2px solid var(--btn-bg);
+    outline-offset: 2px;
 }

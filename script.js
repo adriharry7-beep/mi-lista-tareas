@@ -2,6 +2,35 @@
 const taskInput = document.getElementById('taskInput');
 const addBtn = document.getElementById('addBtn');
 const taskList = document.getElementById('taskList');
+const themeToggle = document.getElementById('themeToggle');
+
+// --- NUEVA FUNCIÓN: Cargar tema guardado ---
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.body.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+    }
+}
+
+// --- NUEVA FUNCIÓN: Guardar tema ---
+function saveTheme(theme) {
+    localStorage.setItem('theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    updateThemeIcon(theme);
+}
+
+// --- FUNCIÓN: Actualizar icono del tema ---
+function updateThemeIcon(theme) {
+    themeToggle.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+}
+
+// --- NUEVA FUNCIÓN: Cambiar modo ---
+function toggleTheme() {
+    const currentTheme = document.body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    saveTheme(newTheme);
+}
 
 // --- NUEVA FUNCIÓN: Cargar datos al iniciar ---
 // Esta función se ejecuta automáticamente cuando abres la página.
@@ -75,5 +104,11 @@ taskInput.addEventListener('keypress', function(e) {
     }
 });
 
-// Ejecutamos la carga de tareas apenas se abre la página
+// Ejecutamos la carga de tareas al iniciar
 loadTasks();
+
+// Cargar tema guardado
+loadTheme();
+
+// Evento para alternar modo noche
+themeToggle.addEventListener('click', toggleTheme);
